@@ -1,4 +1,4 @@
 fluidmosaic
 ===========
 
-Awesome things found online deserve more than being "forwards" or "wall scrolls". This is an attempt to curate them as a resource while you share them with your friends.
+Awesome things found online often get burried under heaps of email or get lost on scrolls. Annotate, classify and organise your findings in a brand new format as you share them with others. Goodbye lists!
