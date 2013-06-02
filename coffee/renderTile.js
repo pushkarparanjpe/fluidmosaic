@@ -39,7 +39,7 @@
   };
 
   d3.json("data/tiles.json", function(data) {
-    var hexData, hexagons, nickData, nicks, polyData, rectData, rects, svg;
+    var circles, hexData, hexagons, nickData, nicks, polyData, rectData, rects, svg;
     hexData = [];
     rectData = [];
     nickData = [];
@@ -64,7 +64,7 @@
         "w": nickW,
         "t": scout
       });
-      return polyData.push(hexagon(size * 0.8, center, 0, "", 7));
+      return polyData.push(hexagon(size * 0.8, center, 0, "", 7).points);
     });
     svg = d3.select("#tile").append("svg").attr("width", 1200).attr("height", 800);
     hexagons = svg.selectAll("polygon").data(hexData).enter().append("polygon").style("stroke", function(d) {
@@ -73,8 +73,8 @@
       return d.thickness;
     }).style("fill", 'none').attr("points", function(d) {
       return d.points.map(function(d) {
-        return [d.x, d.y].join(",");
-      }).join(" ");
+        return [d.x, d.y];
+      });
     });
     rects = svg.selectAll("rect").data(rectData).enter().append("rect").style("stroke", "gray").style("stroke-width", 1).style("fill", 'none').attr("x", function(d) {
       return d.x;
@@ -85,7 +85,7 @@
     }).attr("height", function(d) {
       return d.height;
     });
-    return nicks = svg.selectAll("text").data(nickData).enter().append("text").attr("x", function(d) {
+    nicks = svg.selectAll("text").data(nickData).enter().append("text").attr("x", function(d) {
       return d.x;
     }).attr("y", function(d) {
       return d.y;
@@ -94,8 +94,17 @@
     }).attr("dy", "1.2em").attr("text-anchor", "middle").text(function(d) {
       return d.t;
     }).attr("fill", "black");
+    polyData = polyData.reduce(function(a, b) {
+      return a.concat(b);
+    });
+    circles = svg.selectAll("circle").data(polyData).enter().append("circle").style("fill", "gray").style("stroke", "none").style("stroke-width", 2).attr("cx", function(d) {
+      return d.x;
+    }).attr("cy", function(d) {
+      return d.y;
+    }).attr("r", function(d) {
+      return d.r;
+    });
+    return console.log(circles.attr("cx"));
   });
-
-  'console.log polyData[0].points[0].x\ncircles = svg.selectAll("circle")\n			.data(polyData)\n			.enter()\n			.append("circle")\n			.style("fill", "gray")\n			.style("stroke", "none")\n			.style("stroke-width", 2)\n			.attr("cx",(d) -> (d.points.map((d) -> (d.x)).join(" ")))\n#				.attr("cy",  (d) -> (d.map((d)->d.y)))\n#				.attr("r",  (d) -> (d.map((d)->d.r)))';
 
 }).call(this);

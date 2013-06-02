@@ -77,7 +77,7 @@ d3.json "data/tiles.json", (data) ->
 		# Six corner placeholder circles data
 		# for [MOVE tile, DELETE tile, Discuss, Share, Source, Emblem]
 		# listed in clockwise order
-		polyData.push(hexagon(size*0.8,center,0,"",7))
+		polyData.push(hexagon(size*0.8,center,0,"",7).points)
 
 	#END Populate Data Holders
 
@@ -98,7 +98,7 @@ d3.json "data/tiles.json", (data) ->
 				.style("stroke-width", (d) -> (d.thickness))
 				.style("fill", 'none')
 				#Generalized to add multiple hexagon tiles
-				.attr("points",(d) -> (d.points.map((d) -> ([d.x, d.y]).join(",")).join(" ")))
+				.attr("points",(d) -> (d.points.map((d) -> ([d.x, d.y]))))
 	#console.log hexagons.attr("points")
 	
 	rects = svg.selectAll("rect")
@@ -112,6 +112,7 @@ d3.json "data/tiles.json", (data) ->
 				.attr("y", (d) -> (d.y))
 				.attr("width", (d) -> (d.width))
 				.attr("height", (d) -> (d.height))
+	#console.log rects.attr("x")
 
 	nicks = svg.selectAll("text")
 				.data(nickData)
@@ -124,8 +125,10 @@ d3.json "data/tiles.json", (data) ->
 				.attr("text-anchor", "middle")
 				.text((d) -> (d.t))
 				.attr("fill", "black")
-'''
-	console.log polyData[0].points[0].x
+
+	#Flatten circle coords
+	polyData = polyData.reduce((a,b) -> (a.concat(b)))
+	#END Flatten circle coords
 	circles = svg.selectAll("circle")
 				.data(polyData)
 				.enter()
@@ -133,8 +136,10 @@ d3.json "data/tiles.json", (data) ->
 				.style("fill", "gray")
 				.style("stroke", "none")
 				.style("stroke-width", 2)
-				.attr("cx",(d) -> (d.points.map((d) -> (d.x)).join(" ")))
-#				.attr("cy",  (d) -> (d.map((d)->d.y)))
-#				.attr("r",  (d) -> (d.map((d)->d.r)))
-'''
+				.attr("cx",(d) -> (d.x))
+				.attr("cy",(d) -> (d.y))
+				.attr("r",(d) -> (d.r))
+	console.log circles.attr("cx")
 	#END Render Shapes
+
+
