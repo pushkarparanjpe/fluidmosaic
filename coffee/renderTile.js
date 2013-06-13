@@ -1,5 +1,5 @@
 (function() {
-  var hexagon, rect, status_colors;
+  var circles, d, hexData, hexagon, hexagons, load, nickData, polyData, polyDataMain, popit, rect, rectData, status_colors, svg, _popTile, _populate, _render;
 
   hexagon = function(size, center, thickness, color, radius) {
     var angle, circle, hexobj, i, x, y;
@@ -33,17 +33,29 @@
     return rectobj;
   };
 
+  svg = null;
+
+  hexagons = null;
+
+  circles = null;
+
+  hexData = [];
+
+  rectData = [];
+
+  nickData = [];
+
+  polyDataMain = [];
+
+  polyData = [];
+
   status_colors = {
     "unread": "#ffff80",
     "read": "#ffffff"
   };
 
-  d3.json("data/tiles.json", function(data) {
-    var circles, hexData, hexagons, nickData, nicks, polyData, rectData, rects, svg;
-    hexData = [];
-    rectData = [];
-    nickData = [];
-    polyData = [];
+  _populate = function(data) {
+    console.log("Populating...");
     data.tiles.forEach(function(tile) {
       var cat_color, center, nickW, nickX, nickY, scout, size, status;
       size = 150;
@@ -58,16 +70,23 @@
       nickY = center[1] - size * 0.72;
       nickW = size * 0.5;
       rectData.push(rect(nickX, nickY, nickW, size * 0.15));
-      nickData.push({
+      return nickData.push({
         "x": nickX,
         "y": nickY,
         "w": nickW,
         "t": scout
       });
-      return polyData.push(hexagon(size * 0.8, center, 0, "", 7).points);
     });
     svg = d3.select("#tile").append("svg").attr("width", 1200).attr("height", 800);
-    hexagons = svg.selectAll("polygon").data(hexData).enter().append("polygon").style("stroke", function(d) {
+    return _render();
+  };
+
+  _render = function() {
+    var nicks, rects;
+    console.log("Rendering...");
+    console.log(hexData.length);
+    hexagons = svg.selectAll("polygon").data(hexData);
+    hexagons.enter().append("polygon").style("stroke", function(d) {
       return d.color;
     }).style("stroke-width", function(d) {
       return d.thickness;
@@ -76,7 +95,9 @@
         return [d.x, d.y];
       });
     });
-    rects = svg.selectAll("rect").data(rectData).enter().append("rect").style("stroke", "gray").style("stroke-width", 1).style("fill", 'none').attr("x", function(d) {
+    hexagons.exit().remove();
+    rects = svg.selectAll("rect").data(rectData);
+    rects.enter().append("rect").style("stroke", "gray").style("stroke-width", 1).style("fill", 'none').attr("x", function(d) {
       return d.x;
     }).attr("y", function(d) {
       return d.y;
@@ -85,26 +106,45 @@
     }).attr("height", function(d) {
       return d.height;
     });
-    nicks = svg.selectAll("text").data(nickData).enter().append("text").attr("x", function(d) {
+    rects.exit().remove();
+    nicks = svg.selectAll("text").data(nickData);
+    nicks.enter().append("text").attr("x", function(d) {
       return d.x;
     }).attr("y", function(d) {
       return d.y;
     }).attr("dx", function(d) {
-      return d.w;
+      return d.w / 2;
     }).attr("dy", "1.2em").attr("text-anchor", "middle").text(function(d) {
       return d.t;
     }).attr("fill", "black");
-    polyData = polyData.reduce(function(a, b) {
-      return a.concat(b);
-    });
-    circles = svg.selectAll("circle").data(polyData).enter().append("circle").style("fill", "gray").style("stroke", "none").style("stroke-width", 2).attr("cx", function(d) {
-      return d.x;
-    }).attr("cy", function(d) {
-      return d.y;
-    }).attr("r", function(d) {
-      return d.r;
-    });
-    return console.log(circles.attr("cx"));
-  });
+    return nicks.exit().remove();
+  };
+
+  load = function() {
+    return d3.json("data/tiles.json").on("load", function(json) {
+      return _populate(json);
+    }).get();
+  };
+
+  load();
+
+  _popTile = function(index) {
+    hexData.pop(index);
+    hexData.pop(index);
+    rectData.pop(index);
+    rectData.pop(index);
+    return nickData.pop(index);
+  };
+
+  popit = function() {
+    _popTile(0);
+    return _render();
+  };
+
+  if (d !== null) {
+    clearTimeout(d);
+    d = null;
+    d = setTimeout(popit, 5000);
+  }
 
 }).call(this);

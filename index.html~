@@ -7,7 +7,6 @@
 
 	<div id="tile" style="width: 500px; height: 500px"></div>
 
-	<!--<script src="coffee/foo.js"></script>-->
 	<script src="coffee/renderTile.js"></script>
 
 </body>

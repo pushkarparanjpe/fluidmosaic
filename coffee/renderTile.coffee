@@ -16,7 +16,6 @@ hexagon = (size, center, thickness, color, radius) ->
 	#console.log hexobj
 	return hexobj
 
-	
 # Defining a Rectangle function
 rect = (x, y, width, height) ->
 	rectobj = {"x":x,"y":y,"width":width,"height":height}
@@ -24,28 +23,25 @@ rect = (x, y, width, height) ->
 		
 #END Geometry Functions#
 
+svg = null
+hexagons = null
+circles = null
 
+#Data Holders
+hexData = []
+rectData = []
+nickData = []
+polyDataMain = []
+polyData = []
+status_colors = {"unread":"#ffff80","read":"#ffffff"}
+#END Data Holders
 
-#Utility dicts/arrays
-status_colors = {"unread":"#ffff80","read":"#ffffff",}
-#END Utility dicts/arrays
-
-
-#Load JSON Data file
-d3.json "data/tiles.json", (data) ->
-
-	#Data Holders
-	hexData = []
-	rectData = []
-	nickData = []
-	polyData = []
-	#END Data Holders
-
+_populate = (data) ->
+	console.log "Populating..."
 	#Populate Data Holders
 	#Loop over all Tiles
 	data.tiles.forEach (tile) ->
-
-		#console.log tile
+	
 		size = 150
 		center = tile.loc_xyz
 		cat_color = tile.cat_color
@@ -55,11 +51,11 @@ d3.json "data/tiles.json", (data) ->
 		# Main hexagon data
 		# representing category label (color)
 		hexData.push(hexagon(size,center,8,cat_color))
-
+	
 		# Inner hexagon data
 		# representing read/unread status
 		hexData.push(hexagon(size*0.95,center,6,status_colors[status]))
-
+	
 		# Rectangle data
 		# placeholder frame for Content
 		rectData.push(rect(center[0]-size*1.0/2, center[1]-size*1.0/2, size*1.0, size*1.0))
@@ -77,69 +73,101 @@ d3.json "data/tiles.json", (data) ->
 		# Six corner placeholder circles data
 		# for [MOVE tile, DELETE tile, Discuss, Share, Source, Emblem]
 		# listed in clockwise order
-		polyData.push(hexagon(size*0.8,center,0,"",7).points)
+#		innerhex = hexagon(size*0.8,center,0,"",7).points
+#		polyDataMain.push(innerhex)
+#		polyData = polyDataMain.reduce((a,b) -> (a.concat(b)))	#Flatten circle coords
 
 	#END Populate Data Holders
-
-
-	#Render Shapes
-	# Creating the d3.js object that will be called in a div class
+		# Creating the d3.js object that will be called in a div class
 	# called "tile".
 	svg = d3.select("#tile")
 			.append("svg")
 			.attr("width", 1200)
 			.attr("height", 800)
-	
+
+	_render()
+
+
+_render = () ->
+	console.log "Rendering..."
+	#Render Shapes
+
+	console.log hexData.length
 	hexagons = svg.selectAll("polygon")
 				.data(hexData)
-				.enter()
-				.append("polygon")
-				.style("stroke", (d) -> (d.color))
-				.style("stroke-width", (d) -> (d.thickness))
-				.style("fill", 'none')
-				#Generalized to add multiple hexagon tiles
-				.attr("points",(d) -> (d.points.map((d) -> ([d.x, d.y]))))
-	#console.log hexagons.attr("points")
+	hexagons.enter()
+			.append("polygon")
+			.style("stroke", (d) -> (d.color))
+			.style("stroke-width", (d) -> (d.thickness))
+			.style("fill", 'none')
+			#Generalized to add multiple hexagon tiles
+			.attr("points",(d) -> (d.points.map((d) -> ([d.x, d.y]))))
+	hexagons.exit()
+			.remove()	
 	
 	rects = svg.selectAll("rect")
 				.data(rectData)
-				.enter()
-				.append("rect")
-				.style("stroke", "gray")
-				.style("stroke-width", 1)
-				.style("fill", 'none')
-				.attr("x", (d) -> (d.x))
-				.attr("y", (d) -> (d.y))
-				.attr("width", (d) -> (d.width))
-				.attr("height", (d) -> (d.height))
-	#console.log rects.attr("x")
+	rects.enter()
+			.append("rect")
+			.style("stroke", "gray")
+			.style("stroke-width", 1)
+			.style("fill", 'none')
+			.attr("x", (d) -> (d.x))
+			.attr("y", (d) -> (d.y))
+			.attr("width", (d) -> (d.width))
+			.attr("height", (d) -> (d.height))
+	rects.exit()
+			.remove()
 
 	nicks = svg.selectAll("text")
 				.data(nickData)
-				.enter()
-				.append("text")
-				.attr("x", (d) -> (d.x))
-				.attr("y", (d) -> (d.y))
-				.attr("dx", (d) -> (d.w))
-				.attr("dy", "1.2em")
-				.attr("text-anchor", "middle")
-				.text((d) -> (d.t))
-				.attr("fill", "black")
+	nicks.enter()
+			.append("text")
+			.attr("x", (d) -> (d.x))
+			.attr("y", (d) -> (d.y))
+			.attr("dx", (d) -> (d.w/2))
+			.attr("dy", "1.2em")
+			.attr("text-anchor", "middle")
+			.text((d) -> (d.t))
+			.attr("fill", "black")
+	nicks.exit()
+		.remove()
 
-	#Flatten circle coords
-	polyData = polyData.reduce((a,b) -> (a.concat(b)))
-	#END Flatten circle coords
-	circles = svg.selectAll("circle")
-				.data(polyData)
-				.enter()
-				.append("circle")
-				.style("fill", "gray")
-				.style("stroke", "none")
-				.style("stroke-width", 2)
-				.attr("cx",(d) -> (d.x))
-				.attr("cy",(d) -> (d.y))
-				.attr("r",(d) -> (d.r))
-	console.log circles.attr("cx")
+#	circles = svg.selectAll("circle")
+#				.data(polyData)
+#				.enter()
+#				.append("circle")
+#				.style("fill", "gray")
+#				.style("stroke", "none")
+#				.style("stroke-width", 2)
+#				.attr("cx",(d) -> (d.x))
+#				.attr("cy",(d) -> (d.y))
+#				.attr("r",(d) -> (d.r))
+	
 	#END Render Shapes
+
+
+load = () ->
+	d3.json("data/tiles.json")
+		.on("load", (json) -> _populate(json))
+		.get()
+
+load()
+
+_popTile = (index) ->
+	hexData.pop(index)
+	hexData.pop(index)
+	rectData.pop(index)
+	rectData.pop(index)
+	nickData.pop(index)
+
+popit = () ->
+	_popTile(0)
+	_render()
+
+if d != null
+	clearTimeout d
+	d = null
+	d = setTimeout(popit,5000)
 
 
